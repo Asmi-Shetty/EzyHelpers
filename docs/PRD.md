@@ -22,7 +22,7 @@ P0: locality map, locality selection, apartment list/search, 3.5 km adjacency, z
 ## Key decisions and trade-offs
 
 1. **3.5 km centroid radius:** a stable, explainable proxy for a short auto/walk connection. It is fast enough for client computation and avoids unreliable sub-locality polygons. It does not represent road travel time; production should compare route duration by job type.
-2. **Local seed fallback plus Supabase contract:** the prototype cannot fail because a free database sleeps. Supabase schema and RLS are included, while bundled data demonstrates all core workflows. Production should make Supabase the source of truth and surface freshness.
+2. **Supabase source of truth with a local safety fallback:** locality and apartment data is read from Supabase through read-only RLS. Transit data is read from a 24-hour Supabase cache before Overpass is queried; successful refreshes are written by a server-only service role. Bundled data is used only if Supabase and the external endpoint are unavailable, preventing a demo outage without weakening the primary architecture.
 3. **Overpass via server route:** the browser never hits Overpass directly. A 24-hour shared cache reduces rate pressure and a non-blocking status preserves the core workflow during outages.
 4. **Transit off by default:** reduces clutter and initial load. Users opt into the layer relevant to the conversation.
 5. **Markers rather than polygons:** sample data supplies centroids, not authoritative boundaries. Markers avoid implying false precision.

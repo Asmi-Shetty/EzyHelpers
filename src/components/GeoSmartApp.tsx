@@ -1,6 +1,6 @@
 'use client';
-import { useMemo, useState } from 'react';
-import { apartments, localities } from '@/lib/data';
+import { useEffect, useMemo, useState } from 'react';
+import { apartments as fallbackApartments, localities as fallbackLocalities } from '@/lib/data';
 import { adjacentTo } from '@/lib/geo';
 import type { Apartment, Locality, TransitPoi, TransitType } from '@/lib/types';
 import GeoMap from './GeoMap';
@@ -19,10 +19,18 @@ export default function GeoSmartApp() {
   const [pois, setPois] = useState<Record<string, TransitPoi[]>>({});
   const [status, setStatus] = useState('');
   const [showDayRoute, setShowDayRoute] = useState(false);
-  const adjacent = useMemo(() => selected ? adjacentTo(selected, localities) : [], [selected]);
-  const matches = query.trim().length ? apartments.filter((item) => `${item.name} ${item.locality}`.toLowerCase().includes(query.toLowerCase())).slice(0, 7) : [];
+  const [mapLocalities, setMapLocalities] = useState<Locality[]>(fallbackLocalities);
+  const [mapApartments, setMapApartments] = useState<Apartment[]>(fallbackApartments);
+  useEffect(() => {
+    fetch('/api/map-data').then((response) => response.json()).then((body: { localities?: Locality[]; apartments?: Apartment[]; source?: string }) => {
+      if (body.localities?.length && body.apartments?.length) { setMapLocalities(body.localities); setMapApartments(body.apartments); }
+      if (body.source) { setStatus(`Map data loaded from ${body.source}`); setTimeout(() => setStatus(''), 3500); }
+    }).catch(() => { setStatus('Using bundled map data'); setTimeout(() => setStatus(''), 3500); });
+  }, []);
+  const adjacent = useMemo(() => selected ? adjacentTo(selected, mapLocalities) : [], [selected, mapLocalities]);
+  const matches = query.trim().length ? mapApartments.filter((item) => `${item.name} ${item.locality}`.toLowerCase().includes(query.toLowerCase())).slice(0, 7) : [];
   const chooseLocality = (locality: Locality) => { setSelected(locality); setFocusedApartment(null); };
-  const chooseApartment = (apartment: Apartment) => { setFocusedApartment(apartment); setSelected(localities.find((item) => item.locality === apartment.locality) ?? null); setQuery(''); };
+  const chooseApartment = (apartment: Apartment) => { setFocusedApartment(apartment); setSelected(mapLocalities.find((item) => item.locality === apartment.locality) ?? null); setQuery(''); };
 
   async function toggleTransit(type: TransitType) {
     const next = new Set(active);
@@ -39,7 +47,7 @@ export default function GeoSmartApp() {
     setTimeout(() => setStatus(''), 4000);
   }
   function reset() { setSelected(null); setFocusedApartment(null); setQuery(''); setActive(new Set()); setStatus(''); }
-  const selectedApartments = selected ? apartments.filter((item) => item.locality === selected.locality) : [];
+  const selectedApartments = selected ? mapApartments.filter((item) => item.locality === selected.locality) : [];
 
   return <main className="app">
     <header className="topbar">
@@ -50,7 +58,7 @@ export default function GeoSmartApp() {
     </header>
     <section className="workspace">
       <aside className={`sidebar ${selected ? '' : 'intro'}`}>{selected ? <><span className="eyebrow">Selected locality</span><h1>{selected.locality}</h1><p className="subtle">{selected.pincode} | {selected.district}</p><div className="stat-grid"><div className="stat"><strong>{selectedApartments.length}</strong><span>Apartments</span></div><div className="stat"><strong>{adjacent.length}</strong><span>Within 3.5 km</span></div></div><h2>Apartments</h2>{selectedApartments.length ? selectedApartments.map((apartment) => <button className="item" onClick={() => chooseApartment(apartment)} key={apartment.id}>{apartment.name}</button>) : <p className="subtle">No sample apartments in this locality.</p>}<h2>Adjacent localities</h2><div className="adjacent">{adjacent.length ? adjacent.map((locality) => <button className="chip" key={locality.id} onClick={() => chooseLocality(locality)}>{locality.locality}</button>) : <span className="subtle">None in the 3.5 km radius.</span>}</div></> : <><span className="eyebrow">Bangalore sourcing map</span><h1>Plan field visits. Validate commute.</h1><p className="subtle">Select a locality, search an apartment, or open DayRoute to see a helper&apos;s schedule and travel distance.</p><div className="stat-grid"><div className="stat"><strong>15</strong><span>Localities</span></div><div className="stat"><strong>20</strong><span>Apartments</span></div></div></>}</aside>
-      <div className="map-wrap"><GeoMap selected={selected} focusedApartment={focusedApartment} adjacent={adjacent} onSelect={chooseLocality} activeTransit={active} pois={pois} />{status && <div className="status" role="status">{status}</div>}<div className="legend"><div><i className="dot" style={{ background: '#1e3a5f' }} />Locality</div><div><i className="dot" style={{ background: '#2563eb' }} />Selected</div><div><i className="dot" style={{ background: '#ea580c' }} />Adjacent</div></div></div>
+      <div className="map-wrap"><GeoMap localities={mapLocalities} apartments={mapApartments} selected={selected} focusedApartment={focusedApartment} adjacent={adjacent} onSelect={chooseLocality} activeTransit={active} pois={pois} />{status && <div className="status" role="status">{status}</div>}<div className="legend"><div><i className="dot" style={{ background: '#1e3a5f' }} />Locality</div><div><i className="dot" style={{ background: '#2563eb' }} />Selected</div><div><i className="dot" style={{ background: '#ea580c' }} />Adjacent</div></div></div>
     </section>
     {showDayRoute && <><button className="dayroute-backdrop" aria-label="Close DayRoute" onClick={() => setShowDayRoute(false)} /><DayRoute onClose={() => setShowDayRoute(false)} onSelectLocality={chooseLocality} /></>}
   </main>;
