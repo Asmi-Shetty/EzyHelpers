@@ -21,9 +21,16 @@ function localityRadiusMeters(locality: Locality, apartments: Apartment[]) {
 function Controller({ selected, apartment, apartments }: { selected: Locality | null; apartment: Apartment | null; apartments: Apartment[] }) {
   const map = useMap();
   useEffect(() => {
-    if (apartment) map.flyTo([apartment.lat, apartment.lon], 16, { duration: .7 });
-    else if (selected) map.fitBounds(L.latLng(selected.rep_lat, selected.rep_lon).toBounds(localityRadiusMeters(selected, apartments) * 2), { padding: [36, 36], maxZoom: 14 });
-    else map.fitBounds(bounds, { padding: [18, 18] });
+    const positionMap = () => {
+      map.invalidateSize({ pan: false });
+      if (apartment) map.flyTo([apartment.lat, apartment.lon], 16, { duration: .7 });
+      else if (selected) map.fitBounds(L.latLng(selected.rep_lat, selected.rep_lon).toBounds(localityRadiusMeters(selected, apartments) * 2), { padding: [36, 36], maxZoom: 14 });
+      else map.fitBounds(bounds, { padding: [18, 18] });
+    };
+    const frame = window.requestAnimationFrame(positionMap);
+    const delayed = window.setTimeout(positionMap, 250);
+    window.addEventListener('resize', positionMap);
+    return () => { window.cancelAnimationFrame(frame); window.clearTimeout(delayed); window.removeEventListener('resize', positionMap); };
   }, [map, selected, apartment, apartments]);
   return null;
 }
@@ -38,7 +45,7 @@ function ZoomLabels({ localities, apartments }: { localities: Locality[]; apartm
 export default function GeoMap({ localities, apartments, selected, focusedApartment, adjacent, onSelect, activeTransit, pois }: { localities: Locality[]; apartments: Apartment[]; selected: Locality | null; focusedApartment: Apartment | null; adjacent: Locality[]; onSelect: (locality: Locality) => void; activeTransit: Set<TransitType>; pois: Record<string, TransitPoi[]> }) {
   const adjacentIds = new Set(adjacent.map((item) => item.id));
   return <MapContainer bounds={bounds} zoomControl preferCanvas>
-    <TileLayer attribution='&copy; OpenStreetMap contributors &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+    <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19} crossOrigin />
     <Controller selected={selected} apartment={focusedApartment} apartments={apartments} />
     {selected && <Circle center={[selected.rep_lat, selected.rep_lon]} radius={localityRadiusMeters(selected, apartments)} pathOptions={{ color: '#1d4ed8', weight: 3, fillColor: '#3b82f6', fillOpacity: .13 }} eventHandlers={{ click: () => onSelect(selected) }}><Tooltip sticky><strong>{selected.locality} coverage</strong><br />Includes all {selected.apartment_count} listed apartments</Tooltip></Circle>}
     {localities.map((locality) => { const isSelected = locality.id === selected?.id; const isAdjacent = adjacentIds.has(locality.id); return <CircleMarker key={locality.id} center={[locality.rep_lat, locality.rep_lon]} radius={isSelected ? 10 : isAdjacent ? 10 : 8} pathOptions={{ color: isSelected ? '#1d4ed8' : isAdjacent ? '#ea580c' : '#1e3a5f', weight: isSelected ? 4 : isAdjacent ? 3 : 2, fillColor: isSelected ? '#3b82f6' : '#1e3a5f', fillOpacity: isAdjacent ? .12 : .78 }} eventHandlers={{ click: () => onSelect(locality) }}><Tooltip direction="top"><strong>{locality.locality}</strong><br />{locality.pincode} - {locality.apartment_count} apartments</Tooltip></CircleMarker>; })}
