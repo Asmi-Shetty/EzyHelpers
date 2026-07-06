@@ -33,7 +33,8 @@ export default function GeoSmartApp() {
     try {
       const response = await fetch(`/api/transit?type=${type}`); const body = await response.json();
       if (!response.ok) throw new Error(body.error);
-      setPois((current) => ({ ...current, [type]: body })); setStatus(`${body.length} ${type} points loaded`);
+      const source = response.headers.get('X-Transit-Source') ?? 'map data';
+      setPois((current) => ({ ...current, [type]: body })); setStatus(`${body.length} ${type} points loaded from ${source}`);
     } catch { setStatus('Transit data unavailable - core map remains usable'); }
     setTimeout(() => setStatus(''), 4000);
   }

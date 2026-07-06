@@ -31,6 +31,7 @@ P0: locality map, locality selection, apartment list/search, 3.5 km adjacency, z
 
 - Initial view fits Bangalore and shows every sample locality with name, pincode, and apartment count.
 - Selecting a locality distinguishes it, highlights centroids within 3.5 km, and opens apartments and adjacent localities.
+- The selected locality renders as a geographic coverage circle sized to contain its farthest listed apartment plus a 600 m boundary buffer; this prevents apartment pins from appearing outside their assigned locality visualization.
 - Search returns apartment names; choosing one flies to zoom 16 and displays its pin.
 - Below zoom 13 no pincode labels appear; at 13+ locality/pincode labels appear; at 16+ apartment pins appear.
 - Four transit controls work independently. Pins show type/name plus distance from a selected locality.
