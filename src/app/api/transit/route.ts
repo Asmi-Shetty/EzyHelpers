@@ -1,0 +1,6 @@
+import { NextResponse } from 'next/server';
+const ENDPOINT='https://overpass-api.de/api/interpreter';
+const BBOX='12.7,77.2,13.35,77.9';
+const filters={metro:'node["railway"="station"]["station"="subway"]',bus:'node["highway"="bus_stop"]',railway:'node["railway"="station"]["station"!="subway"]',taxi:'node["amenity"="taxi"]'} as const;
+export const revalidate=86400;
+export async function GET(request:Request){const type=new URL(request.url).searchParams.get('type') as keyof typeof filters;if(!filters[type])return NextResponse.json({error:'Invalid transit type'},{status:400});const query=`[out:json][timeout:25];${filters[type]}(${BBOX});out body;`;try{const res=await fetch(ENDPOINT,{method:'POST',body:new URLSearchParams({data:query}),headers:{'Content-Type':'application/x-www-form-urlencoded'},next:{revalidate:86400}});if(!res.ok)throw new Error(`Overpass ${res.status}`);const data=await res.json();return NextResponse.json((data.elements??[]).map((e:any)=>({id:`${type}-${e.id}`,type,name:e.tags?.name||`${type[0].toUpperCase()+type.slice(1)} point`,lat:e.lat,lon:e.lon})),{headers:{'Cache-Control':'public, s-maxage=86400, stale-while-revalidate=604800'}})}catch{return NextResponse.json({error:'Transit data is temporarily unavailable',items:[]},{status:503})}}
