@@ -1,8 +1,8 @@
 # EzyHelpers GeoSmart
 
-GeoSmart is a map-first locality intelligence web app built for the EzyHelpers Associate Product Manager assignment. It helps sourcing teams understand Bangalore localities, apartments, nearby areas, and public-transit context from one simple interface.
+GeoSmart is a map-first locality intelligence web app for EzyHelpers sourcing operations. It helps teams understand Bangalore localities, apartments, nearby areas, and public-transit context from one simple interface.
 
-The project is intentionally scoped as a 48-hour MVP: useful enough for an interviewer to test end-to-end, but honest about assumptions, trade-offs, and what would need deeper validation in a real sprint.
+The product focuses on the core sourcing workflow first: selecting a locality, checking apartments, reviewing nearby areas, understanding transit context, and resetting the map quickly when planning or qualifying leads.
 
 ## One-line product summary
 
@@ -52,7 +52,7 @@ This is useful because helpers often need to understand not only where the next 
 
 Important limitation: DayRoute is intentionally read-only in this MVP. It does not store helper personal data, customer addresses, live traffic, or editable schedules. In a real sprint, I would validate this with helpers before expanding it into a full scheduling module.
 
-## How an interviewer can test the deployed app
+## How to review the deployed app
 
 1. Open the deployed Vercel URL.
 2. Select a locality such as **Bellandur**, **Whitefield**, or **Koramangala**.
@@ -292,7 +292,7 @@ What is intentionally not included:
 - Official locality boundary polygons
 - Admin dashboard for data editing
 
-These are real product opportunities, but they would expand the 48-hour MVP beyond a fair assignment scope.
+These are meaningful product opportunities, but they are intentionally kept outside the initial release scope so the core sourcing workflow remains focused and reliable.
 
 ## What I would do differently in a real sprint
 
@@ -310,14 +310,14 @@ In a real sprint, I would:
 
 Codex was used as an AI development assistant for:
 
-- converting the assignment into product requirements;
+- converting the project brief into product requirements;
 - scaffolding the Next.js/TypeScript implementation;
 - debugging Vercel and Leaflet issues;
 - implementing Supabase and Overpass caching flow;
 - writing tests and documentation;
 - preparing PRD and usability guide PDFs.
 
-Product judgement, scope decisions, assumptions, trade-offs, and final submission choices were treated as PM ownership decisions.
+Product judgement, scope decisions, assumptions, trade-offs, and final delivery choices were treated as PM ownership decisions.
 
 ## Repository structure
 
@@ -338,7 +338,7 @@ docs/
   PRD.md                Product requirements document
 ```
 
-## Final evaluator summary
+## Project summary
 
 GeoSmart demonstrates product thinking and technical breadth in one focused MVP:
 
@@ -350,4 +350,4 @@ GeoSmart demonstrates product thinking and technical breadth in one focused MVP:
 - TypeScript implementation;
 - Vercel deployment readiness;
 - documented assumptions and trade-offs;
-- extra DayRoute feature showing helper empathy beyond the base assignment.
+- extra DayRoute feature showing helper empathy beyond the core requirements.
