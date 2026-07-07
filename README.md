@@ -306,18 +306,7 @@ In a real sprint, I would:
 6. Validate DayRoute with helpers before expanding it into a full scheduling feature.
 7. Replace representative circles or approximations with verified locality boundary data if available.
 
-## AI-assisted development note
 
-Codex was used as an AI development assistant for:
-
-- converting the project brief into product requirements;
-- scaffolding the Next.js/TypeScript implementation;
-- debugging Vercel and Leaflet issues;
-- implementing Supabase and Overpass caching flow;
-- writing tests and documentation;
-- preparing PRD and usability guide PDFs.
-
-Product judgement, scope decisions, assumptions, trade-offs, and final delivery choices were treated as PM ownership decisions.
 
 ## Repository structure
 
